@@ -1,0 +1,18 @@
+[
+  {
+    "name": "salesforce_weekly_report",
+    "workflow": "Every Monday I download a CSV export from Salesforce, open it in Excel, remove duplicate leads, build a pivot table of deals by region, then paste a summary into an email I send to my manager."
+  },
+  {
+    "name": "support_ticket_triage",
+    "workflow": "I read every new support ticket in Zendesk, tag it by product area, copy the customer details into a Google Sheet, and ping the right engineer on Slack. Takes me ~2 hours a day."
+  },
+  {
+    "name": "invoice_reconciliation",
+    "workflow": "At month end I export invoices from QuickBooks as PDFs, type the amounts into a spreadsheet by hand, match them against bank statement lines, and flag mismatches for the finance lead."
+  },
+  {
+    "name": "vague_minimal",
+    "workflow": "I do a lot of repetitive reporting stuff in spreadsheets."
+  }
+]
