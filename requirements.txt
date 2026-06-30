@@ -1,0 +1,9 @@
+# Runtime
+groq==1.5.0
+python-dotenv==1.2.1
+fastapi==0.138.2
+uvicorn[standard]==0.38.0
+pydantic==2.12.3
+
+# Tests
+pytest==9.1.1
