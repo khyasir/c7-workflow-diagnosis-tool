@@ -33,6 +33,21 @@ def test_diagnose_success(client):
     assert r.json() == {"plan": "PLAN for: I export CSVs weekly"}
 
 
+def test_diagnose_multimodal_dict(client):
+    # Gradio multimodal sends {"text":..., "files":[]} — backend must coerce it.
+    r = client.post(
+        "/diagnose", json={"workflow": {"text": "I export CSVs weekly", "files": []}}
+    )
+    assert r.status_code == 200
+    assert r.json() == {"plan": "PLAN for: I export CSVs weekly"}
+
+
+def test_diagnose_bad_type(client):
+    # A list isn't text or a {text:...} dict -> 422.
+    r = client.post("/diagnose", json={"workflow": [1, 2, 3]})
+    assert r.status_code == 422
+
+
 def test_diagnose_missing_field(client):
     # No 'workflow' key -> pydantic validation error.
     r = client.post("/diagnose", json={})

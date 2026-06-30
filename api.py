@@ -8,8 +8,10 @@ Run it:
 Then open http://127.0.0.1:8000/docs for the interactive Swagger UI.
 """
 
+from typing import Any, Union
+
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from main import diagnose
 
@@ -21,15 +23,25 @@ app = FastAPI(
 
 
 class DiagnoseRequest(BaseModel):
-    workflow: str = Field(
+    # Accept either a plain string or Gradio's multimodal dict ({"text": ...,
+    # "files": [...]}) — clients vary, so normalize to a string before validating.
+    workflow: Union[str, dict] = Field(
         ...,
-        min_length=1,
-        description="Free-text description of the analyst's workflow.",
+        description="Workflow text, or a {'text': ...} object from a chat client.",
         examples=[
             "Every Monday I export a CSV from Salesforce, clean it in Excel, "
             "and email a summary to my manager."
         ],
     )
+
+    @field_validator("workflow", mode="before")
+    @classmethod
+    def coerce_to_text(cls, v: Any) -> str:
+        if isinstance(v, dict):
+            v = v.get("text", "")  # Gradio multimodal shape
+        if not isinstance(v, str):
+            raise ValueError("workflow must be text or a {'text': ...} object")
+        return v
 
 
 class DiagnoseResponse(BaseModel):
