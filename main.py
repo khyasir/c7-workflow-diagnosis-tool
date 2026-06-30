@@ -67,11 +67,6 @@ def diagnose(workflow_description: str) -> str:
     return completion.choices[0].message.content.strip()
 
 
-# Re-export the FastAPI app so `uvicorn main:app` works (Render's default start
-# command). The real app lives in api.py; this just makes both module paths valid.
-from api import app  # noqa: E402
-
-
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         description = " ".join(sys.argv[1:])
