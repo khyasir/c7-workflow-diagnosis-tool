@@ -25,7 +25,7 @@ app = FastAPI(
 class DiagnoseRequest(BaseModel):
     # Accept either a plain string or Gradio's multimodal dict ({"text": ...,
     # "files": [...]}) — clients vary, so normalize to a string before validating.
-    workflow: Union[str, dict] = Field(
+    workflow_description: Union[str, dict] = Field(
         ...,
         description="Workflow text, or a {'text': ...} object from a chat client.",
         examples=[
@@ -34,13 +34,13 @@ class DiagnoseRequest(BaseModel):
         ],
     )
 
-    @field_validator("workflow", mode="before")
+    @field_validator("workflow_description", mode="before")
     @classmethod
     def coerce_to_text(cls, v: Any) -> str:
         if isinstance(v, dict):
             v = v.get("text", "")  # Gradio multimodal shape
         if not isinstance(v, str):
-            raise ValueError("workflow must be text or a {'text': ...} object")
+            raise ValueError("workflow_description must be text or a {'text': ...} object")
         return v
 
 
@@ -57,10 +57,12 @@ def health() -> dict:
 @app.post("/diagnose", response_model=DiagnoseResponse)
 def diagnose_endpoint(req: DiagnoseRequest) -> DiagnoseResponse:
     """Generate a diagnosis plan from a workflow description."""
-    if not req.workflow.strip():
-        raise HTTPException(status_code=422, detail="workflow must not be empty")
+    if not req.workflow_description.strip():
+        raise HTTPException(
+            status_code=422, detail="workflow_description must not be empty"
+        )
     try:
-        plan = diagnose(req.workflow)
+        plan = diagnose(req.workflow_description)
     except RuntimeError as err:
         # Missing key / LLM failure -> 503, clean message instead of a 500 trace.
         raise HTTPException(status_code=503, detail=str(err)) from err

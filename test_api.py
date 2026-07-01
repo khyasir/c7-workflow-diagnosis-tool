@@ -28,7 +28,7 @@ def test_health(client):
 
 
 def test_diagnose_success(client):
-    r = client.post("/diagnose", json={"workflow": "I export CSVs weekly"})
+    r = client.post("/diagnose", json={"workflow_description": "I export CSVs weekly"})
     assert r.status_code == 200
     assert r.json() == {"plan": "PLAN for: I export CSVs weekly"}
 
@@ -36,7 +36,7 @@ def test_diagnose_success(client):
 def test_diagnose_multimodal_dict(client):
     # Gradio multimodal sends {"text":..., "files":[]} — backend must coerce it.
     r = client.post(
-        "/diagnose", json={"workflow": {"text": "I export CSVs weekly", "files": []}}
+        "/diagnose", json={"workflow_description": {"text": "I export CSVs weekly", "files": []}}
     )
     assert r.status_code == 200
     assert r.json() == {"plan": "PLAN for: I export CSVs weekly"}
@@ -44,7 +44,7 @@ def test_diagnose_multimodal_dict(client):
 
 def test_diagnose_bad_type(client):
     # A list isn't text or a {text:...} dict -> 422.
-    r = client.post("/diagnose", json={"workflow": [1, 2, 3]})
+    r = client.post("/diagnose", json={"workflow_description": [1, 2, 3]})
     assert r.status_code == 422
 
 
@@ -56,13 +56,13 @@ def test_diagnose_missing_field(client):
 
 def test_diagnose_empty_string(client):
     # min_length=1 rejects "" before the handler runs.
-    r = client.post("/diagnose", json={"workflow": ""})
+    r = client.post("/diagnose", json={"workflow_description": ""})
     assert r.status_code == 422
 
 
 def test_diagnose_whitespace_only(client):
     # Passes min_length but the handler's .strip() guard returns 422.
-    r = client.post("/diagnose", json={"workflow": "   "})
+    r = client.post("/diagnose", json={"workflow_description": "   "})
     assert r.status_code == 422
     assert "empty" in r.json()["detail"].lower()
 
@@ -74,7 +74,7 @@ def test_diagnose_llm_failure_returns_503(monkeypatch):
 
     monkeypatch.setattr(api, "diagnose", boom)
     client = TestClient(api.app)
-    r = client.post("/diagnose", json={"workflow": "anything"})
+    r = client.post("/diagnose", json={"workflow_description": "anything"})
     assert r.status_code == 503
     assert "GROQ_API_KEY" in r.json()["detail"]
 
@@ -87,7 +87,7 @@ def test_diagnose_live():
     client = TestClient(api.app)
     r = client.post(
         "/diagnose",
-        json={"workflow": "Every Monday I export a CSV from Salesforce and email a summary."},
+        json={"workflow_description": "Every Monday I export a CSV from Salesforce and email a summary."},
     )
     assert r.status_code == 200
     assert len(r.json()["plan"]) > 50
